@@ -1,286 +1,266 @@
-# 🧬 Antibiotic Resistance Decision Support System
+<div align="center">
 
-![Banner](https://via.placeholder.com/1200x300/1a4d2a/ffffff?text=Antibiotic+Resistance+Decision+Support)
+# 🧬 ResistAI
 
-An AI‑powered tool that predicts antibiotic resistance from **clinical patient data** (species, demographics, risk factors) and **environmental sampling data** (location, surface type). Built with XGBoost and Gradio, this dashboard helps clinicians and researchers make informed decisions by ranking effective antibiotics and visualising co‑resistance patterns.
+### Antibiotic Resistance Decision Support System
 
----
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Visit%20App-00ff9d?style=for-the-badge&labelColor=060b12)](https://bhattyuvraj22.github.io/antibiotic-resistance-predictor)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/bhattyuvraj22/antibiotic-resistance-predictor)
+[![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
+[![License](https://img.shields.io/badge/License-Research%20Only-ff4545?style=for-the-badge)](./LICENSE)
 
-## 📖 Table of Contents
-- [Overview](#overview)
-- [Datasets](#datasets)
-- [Features](#features)
-- [Methodology](#methodology)
-- [Installation & Setup](#installation--setup)
-- [How to Run](#how-to-run)
-- [Dashboard Walkthrough](#dashboard-walkthrough)
-- [Results](#results)
-- [Future Work](#future-work)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+<br/>
 
----
+> **An AI-powered clinical + environmental antibiotic resistance prediction dashboard**
+> powered by two ML models and a Flask REST API — built to combat antimicrobial resistance (AMR).
 
-## 🔬 Overview
-Antimicrobial resistance (AMR) is a global health crisis. This project tackles AMR by providing two complementary prediction models:
+<br/>
 
-- **Clinical Model** – Predicts resistance for 15 antibiotics using patient data (age, gender, diabetes, hypertension, prior hospitalisation, infection frequency) and bacterial species.
-- **Environmental Model** – Predicts resistance for 5 antibiotics using location (city) and sampling surface (butcher table, concrete slab, soil) – based on environmental isolates from Nigeria.
+![Overview Dashboard](docs/ui-screenshots/01-overview-dashboard.png)
 
-The tool outputs the probability of resistance for each antibiotic, suggests the most effective alternatives, and displays feature importance and co‑resistance networks.
+</div>
 
 ---
 
-## 📊 Datasets
+## ✨ What is ResistAI?
 
-### Secondary Dataset (Clinical)
-- **Source:** Synthetic clinical dataset (~10,000 isolates)
-- **Features:** `Souches` (bacterial species), `Age`, `Gender`, `Diabetes`, `Hypertension`, `Hospital_before`, `Infection_Freq`
-- **Targets:** 15 antibiotics (R/S)
-- **Cleaned:** Missing values imputed, categorical encodings standardised.
+**ResistAI** is a full-stack decision support system that predicts antibiotic resistance from two data sources:
 
-### Primary Dataset (Environmental)
-- **Source:** `Dataset.xlsx` – zone diameters for 5 antibiotics, collected from four locations in Nigeria.
-- **Features:** `city` (Ede, Ife, Iwo, Osu), `surface_code` (T, C, S)
-- **Targets:** 5 antibiotics, classified into **Sensitive / Intermediate / Resistant** based on zone diameter thresholds.
-- **Pre‑trained model:** provided as `model.pkl`.
+- 🏥 **Clinical data** — patient demographics, comorbidities, bacterial species → predicts resistance for **15 antibiotics**
+- 🌿 **Environmental data** — Nigerian surface/soil sampling locations → predicts resistance for **5 antibiotics**
+
+It gives clinicians and researchers an instant, ranked recommendation of which antibiotics are most likely to be effective — before culture results are available.
 
 ---
 
-## ✨ Features
+## 🖥️ UI Preview
 
-- **Clinical Prediction Tab**  
-  - Input patient demographics and select an antibiotic of interest.  
-  - Output: resistance probability, top‑5 recommended antibiotics, probability bar chart, and feature importance plot.
-
-- **Environmental Prediction Tab**  
-  - Input city and surface type, select an antibiotic.  
-  - Output: resistance class, confidence, probability distribution, and feature importance.
-
-- **Model Performance Tab**  
-  - Data table and bar chart of weighted F1 scores for both clinical and environmental models.
-
-- **Co‑resistance Network** (included in the code, but not displayed in the current UI – can be added back if desired)
+| Page | Preview |
+|------|---------|
+| 📊 **Overview Dashboard** | ![Overview](docs/ui-screenshots/01-overview-dashboard.png) |
+| 🔬 **Clinical Prediction** | ![Clinical](docs/ui-screenshots/03-clinical-prediction.png) |
+| 🌿 **Environmental Prediction** | ![Environmental](docs/ui-screenshots/04-environmental-prediction.png) |
+| 🧬 **Gene & Features** | ![Genes](docs/ui-screenshots/05-gene-features.png) |
+| 📈 **Model Performance** | ![Performance](docs/ui-screenshots/06-model-performance-metrics.png) |
+| 💊 **Treatment Strategy** | ![Strategy](docs/ui-screenshots/08-treatment-strategy.png) |
 
 ---
 
-## ⚙️ Methodology
+## 🚀 Quick Start
 
-### Data Preprocessing
-- **Clinical dataset:**  
-  - Split `age/gender` into separate columns.  
-  - Standardised binary columns (`Diabetes`, `Hypertension`, `Hospital_before`) to 0/1.  
-  - Mapped `Infection_Freq` to numeric (0‑3).  
-  - Cleaned species names (e.g., `E.coi` → `Escherichia coli`).  
-  - Antibiotic labels: `R` → 1, `S` → 0, other → NaN.  
-  - Imputed missing values (median for `Age`, 0 for `Infection_Freq`, 'Unknown' for categoricals).
+```bash
+# 1. Clone the repo
+git clone https://github.com/bhattyuvraj22/antibiotic-resistance-predictor.git
+cd antibiotic-resistance-predictor
 
-- **Environmental dataset:**  
-  - Zone diameters transformed into three‑class outcomes (Sensitive, Intermediate, Resistant) based on quantiles.  
-  - Pre‑trained model uses one‑hot encoding for city and surface.
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate        # macOS/Linux
+# venv\Scripts\activate         # Windows
 
-### Model Training
-- **Algorithm:** XGBoost (binary classification)
-- **Pipeline:** One‑hot encoding of categorical features, standard scaling of numeric features.
-- **Class imbalance:** `scale_pos_weight` adjusted per antibiotic based on training set class ratio.
-- **Evaluation:** Weighted F1‑score and ROC‑AUC.
+# 3. Install dependencies
+pip install -r requirements.txt
 
-### Performance
-- **Clinical models:** F1 scores range from 0.60 to 0.75 across 15 antibiotics.
-- **Environmental models:** F1 scores around 0.62–0.73 for the 5 antibiotics.
+# 4. Run the server
+python src/app.py
+```
 
----
+Open **http://localhost:5500** in your browser. 🎉
 
-## 💻 Installation & Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/antibiotic-resistance-dss.git
-   cd antibiotic-resistance-dss
-
-
-
-   #scrappp
-   # 🧬 ResistAI — Antibiotic Resistance Decision Support
-
-A clinical + environmental antibiotic resistance prediction dashboard powered by two ML models (Random Forest + HGB ensemble) and a Flask REST API.
-
-> **For research use only. Not for clinical decision-making without appropriate validation.**
+> ⚠️ If model `.pkl` files are absent, the app runs in **demo mode** with randomised fallback predictions.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-resistai/
-├── app.py                    ← Flask API server (entry point)
-├── requirements.txt          ← Python dependencies
-├── .gitignore
-├── README.md
+antibiotic-resistance-predictor/
 │
-├── models/                   ← Place your .pkl files here (not committed to git)
-│   ├── model.pkl                      ← Environmental model (Model 1)
-│   └── antibiotic_resistance_model_v2.pkl  ← Clinical model (Model 2)
+├── 📂 Interface/               ← Frontend (HTML, CSS, JS)
+│   ├── index.html
+│   ├── main.css
+│   └── main.js
 │
-├── templates/
-│   └── index.html            ← Main dashboard HTML (Jinja2 template)
+├── 📂 dataset/
+│   └── raw/
+│       ├── Bacteria_dataset_Multiresic...
+│       └── Dataset.xlsx         ← Environmental sampling data (Nigeria)
 │
-└── static/
-    ├── css/
-    │   └── main.css          ← All dashboard styles
-    └── js/
-        └── main.js           ← Chart rendering + fetch() API calls
+├── 📂 docs/
+│   ├── methodology.md
+│   └── ui-screenshots/          ← App preview images
+│
+├── 📂 models/                   ← Trained ML model artifacts
+│   ├── primarymodel.pkl         ← Environmental model
+│   ├── secondarymodel.pkl       ← Clinical model (ensemble)
+│   └── feature_cols.pkl
+│
+├── 📂 src/                      ← Flask backend
+│   ├── app.py                   ← Main API server ⭐
+│   ├── primarymodel.py          ← Environmental model training
+│   └── secondarymodel.py        ← Clinical model training
+│
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🤖 ML Models
 
-### 1. Clone the repo
-```bash
-git clone https://github.com/your-username/resistai.git
-cd resistai
-```
+### 🟢 Primary Model — Environmental
+| Property | Details |
+|----------|---------|
+| **File** | `models/primarymodel.pkl` |
+| **Data** | Nigerian surface swab data (soil, concrete, butcher tables) |
+| **Input** | City (Ede, Ife, Iwo, Osu) + Surface Type |
+| **Output** | Sensitive / Intermediate / Resistant for 5 antibiotics |
+| **Algorithm** | Random Forest MultiOutputClassifier |
+| **F1 Score** | 0.62 – 0.73 across antibiotics |
 
-### 2. Create and activate a virtual environment
-```bash
-python -m venv venv
-
-# macOS / Linux
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
-```
-
-### 3. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Add your model files
-Place both `.pkl` files in the `models/` directory:
-```
-models/
-  model.pkl
-  antibiotic_resistance_model_v2.pkl
-```
-
-> If the models are absent, the app runs in **demo mode** — it still works but returns randomised fallback predictions.
-
-### 5. Run the server
-```bash
-python app.py
-```
-
-Open your browser at **http://localhost:5000**
+### 🔵 Secondary Model — Clinical
+| Property | Details |
+|----------|---------|
+| **File** | `models/secondarymodel.pkl` |
+| **Data** | Synthetic clinical dataset (~10,000 isolates) |
+| **Input** | Species, Age, Gender, Diabetes, Hypertension, Hospital history, Infection frequency |
+| **Output** | Resistance probability for **15 antibiotics** |
+| **Algorithm** | VotingClassifier (HistGradientBoosting + Random Forest) |
+| **F1 Score** | 0.62 – 0.75 across antibiotics |
+| **ROC AUC** | 0.91 (Gentamicin model) |
 
 ---
 
 ## 🔌 API Reference
 
-### Health check
+### `GET /health`
+```json
+{
+  "status": "ok",
+  "models": { "clinical": true, "environmental": true }
+}
 ```
-GET /health
-```
-Returns model load status.
 
-### Clinical prediction
-```
-POST /predict/clinical
-Content-Type: application/json
-
+### `POST /predict/clinical`
+```json
+// Request
 {
   "species":      "Escherichia coli",
   "age":          45,
   "gender":       "M",
   "diabetes":     "No",
   "hypertension": "No",
-  "hospital":     "No",
-  "inf_freq":     "Rarely",
+  "hospital":     "Yes",
+  "inf_freq":     "Often",
   "antibiotic":   "CIP"
 }
-```
 
-Response:
-```json
+// Response
 {
   "antibiotic":      "CIP",
-  "resistance_prob": 0.62,
-  "susceptibility":  0.38,
+  "resistance_prob": 0.6200,
+  "susceptibility":  0.3800,
   "classification":  "Resistant",
-  "all_probs":       { "AMX/AMP": 0.45, "CIP": 0.62, ... },
-  "recommendations": [{ "name": "GEN", "resistance_prob": 0.18 }, ...],
-  "alternatives":    [{ "name": "GEN", "resistance_prob": 0.18 }, ...]
+  "all_probs":       { "AMX/AMP": 0.45, "CIP": 0.62, "GEN": 0.18, "..." : "..." },
+  "recommendations": [{ "name": "GEN", "resistance_prob": 0.18 }],
+  "alternatives":    [{ "name": "IPM", "resistance_prob": 0.22 }]
 }
 ```
 
-### Environmental prediction
-```
-POST /predict/environmental
-Content-Type: application/json
-
-{
-  "city":          "Ife",
-  "surface":       "T",
-  "antibiotic":    "ciprofloxacin",
-  "sample_source": "Community",
-  "species":       "— Any —"
-}
-```
-
-Response:
+### `POST /predict/environmental`
 ```json
+// Request
 {
-  "antibiotic":    "ciprofloxacin",
-  "city":          "Ife",
-  "surface":       "T",
-  "probabilities": { "Sensitive": 0.45, "Intermediate": 0.25, "Resistant": 0.30 },
+  "city": "Ife", "surface": "T",
+  "antibiotic": "ciprofloxacin", "sample_source": "Community"
+}
+
+// Response
+{
   "prediction":    "Sensitive",
-  "confidence":    0.45
+  "confidence":    0.45,
+  "probabilities": { "Sensitive": 0.45, "Intermediate": 0.25, "Resistant": 0.30 }
 }
 ```
+
+---
+
+## 📊 Antibiotics Covered
+
+| Clinical (15) | Environmental (5) |
+|--------------|------------------|
+| AMX/AMP, AMC, CZ, FOX, CTX/CRO | Imipenem |
+| IPM, GEN, AN, ofx, CIP | Ceftazidime |
+| Acide nalidixique, C | Gentamicin |
+| Co-trimoxazole, Furanes, colistine | Augmentin, Ciprofloxacin |
+
+---
+
+## 📦 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python 3.13, Flask 3.0, Flask-CORS |
+| **ML** | scikit-learn, XGBoost, joblib |
+| **Data** | pandas, NumPy |
+| **Frontend** | Vanilla JS, Chart.js, CSS3 |
+| **Server** | Gunicorn (production) |
 
 ---
 
 ## 🌐 Production Deployment
 
-### Using Gunicorn (recommended for Linux servers)
 ```bash
-gunicorn -w 2 -b 0.0.0.0:5000 app:app
+# Using Gunicorn
+gunicorn -w 2 -b 0.0.0.0:5500 src.app:app
 ```
 
-### Environment variables
-| Variable       | Default | Description                        |
-|----------------|---------|------------------------------------|
-| `PORT`         | `5000`  | Port to bind the server            |
-| `FLASK_DEBUG`  | `false` | Enable debug mode (dev only)       |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `5500` | Server port |
+| `FLASK_DEBUG` | `false` | Enable debug mode |
 
 ---
 
-## 🤖 Models
+## 📈 Model Performance Summary
 
-| Model | File | Description |
-|-------|------|-------------|
-| Environmental (Model 1) | `models/model.pkl` | Random Forest trained on Nigerian environmental surface swab data. Predicts S/I/R class for 5 antibiotics. |
-| Clinical (Model 2) | `models/antibiotic_resistance_model_v2.pkl` | RF + HistGradientBoosting Voting Ensemble. Predicts resistance probability for 15 antibiotics from patient demographics and clinical features. |
+```
+Clinical Model (15 antibiotics)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Avg. Accuracy     87%
+Best ROC AUC      0.91  (Gentamicin)
+F1 Range          0.62 – 0.75
+Resistance Rate   38% across isolates
 
----
-
-## 📦 Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| Flask | 3.0.3 | Web server + API routing |
-| flask-cors | 4.0.1 | Cross-origin resource sharing |
-| joblib | 1.4.2 | Model serialisation |
-| scikit-learn | 1.5.1 | ML pipeline + prediction |
-| numpy | 1.26.4 | Numerical operations |
-| pandas | 2.2.2 | Dataframe construction for model input |
-| gunicorn | 22.0.0 | Production WSGI server |
+Environmental Model (5 antibiotics)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+F1 Range          0.62 – 0.73
+Classes           Sensitive / Intermediate / Resistant
+```
 
 ---
 
-## 📜 License
+## ⚠️ Disclaimer
 
-This project is for academic research purposes only. The predictive models were trained on a Nigerian clinical and environmental dataset. Results should not be used for direct clinical decision-making.
+> This tool is for **academic and research purposes only**.
+> Predictions should not be used for direct clinical decision-making without appropriate laboratory validation and clinical oversight.
+> Models were trained on Nigerian clinical and environmental datasets and may not generalise to other populations.
+
+---
+
+## 🙏 Acknowledgements
+
+- Dataset sourced from Nigerian environmental surface sampling studies
+- Built with scikit-learn, Flask, and Chart.js
+- UI inspired by modern clinical decision support dashboards
+
+---
+
+<div align="center">
+
+Made with 🧬 by [Yuvraj Bhatt](https://github.com/bhattyuvraj22)
+
+[![GitHub stars](https://img.shields.io/github/stars/bhattyuvraj22/antibiotic-resistance-predictor?style=social)](https://github.com/bhattyuvraj22/antibiotic-resistance-predictor)
+
+</div>
