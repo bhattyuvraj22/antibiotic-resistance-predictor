@@ -294,4 +294,4 @@ Made with 🧬 by [Yuvraj Bhatt](https://github.com/bhattyuvraj22)
 
 [![GitHub stars](https://img.shields.io/github/stars/bhattyuvraj22/antibiotic-resistance-predictor?style=social)](https://github.com/bhattyuvraj22/antibiotic-resistance-predictor)
 
-</div>
+</div>.
