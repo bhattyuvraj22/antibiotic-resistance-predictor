@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResistAI — Antibiotic Resistance Decision Support</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="/main.css">
+<script src="/main.js"></script>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a class="logo" href="#">
+      <div class="logo-icon">🧬</div>
+      RESIST<span style="color:var(--accent2)">AI</span>
+    </a>
+    <span style="font-size:11px;color:var(--text-dim);font-family:var(--mono);">// Antibiotic Resistance Decision Support</span>
+    <div class="status-dot" style="margin-left:12px;"></div>
+    <span id="model-status-text" style="font-size:11px;color:var(--accent2);font-family:var(--mono);">MODEL ONLINE</span>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">ANALYSIS</div>
+    <div class="nav-item active" onclick="navigate('dashboard', this)">
+      <span class="icon">📊</span> Overview
+    </div>
+    <div class="nav-item" onclick="navigate('clinical', this)">
+      <span class="icon">🏥</span> Clinical Prediction
+    </div>
+    <div class="nav-item" onclick="navigate('environmental', this)">
+      <span class="icon">🌿</span> Environmental
+    </div>
+
+    <div class="nav-section" style="margin-top:12px;">INSIGHTS</div>
+    <div class="nav-item" onclick="navigate('features', this)">
+      <span class="icon">🧬</span> Gene & Features
+    </div>
+    <div class="nav-item" onclick="navigate('performance', this)">
+      <span class="icon">📈</span> Model Performance
+    </div>
+    <div class="nav-item" onclick="navigate('strategy', this)">
+      <span class="icon">💊</span> Treatment Strategy
+    </div>
+
+    <div style="flex:1;"></div>
+    <div style="padding:16px;font-size:10px;color:var(--text-dim);font-family:var(--mono);line-height:1.6;">
+      <br>
+      Clinical + Environmental<br>
+      Dataset
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════ DASHBOARD OVERVIEW ═══════════ -->
+    <div id="page-dashboard" class="page active">
+      <div>
+        <div class="page-title">Overview Dashboard</div>
+        <div class="page-sub">Real-time antibiotic resistance intelligence across bacterial strains</div>
+      </div>
+
+      <!-- KPI Row -->
+      <div class="overview-kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon blue">🦠</div>
+          <div>
+            <div class="kpi-val blue">15</div>
+            <div class="kpi-label">Antibiotics Modelled</div>
+            <div class="kpi-change">Clinical dataset</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green">✅</div>
+          <div>
+            <div class="kpi-val green">87%</div>
+            <div class="kpi-label">Avg. Accuracy</div>
+            <div class="kpi-change">All models combined</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange">⚠️</div>
+          <div>
+            <div class="kpi-val orange">38%</div>
+            <div class="kpi-label">Resistance Rate</div>
+            <div class="kpi-change">Across isolates</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon red">🔬</div>
+          <div>
+            <div class="kpi-val red">0.91</div>
+            <div class="kpi-label">Best ROC AUC</div>
+            <div class="kpi-change">Gentamicin model</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Resistance Distribution — All Antibiotics</div>
+          <div class="chart-wrap">
+            <canvas id="dashBarChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Isolate Phenotype Breakdown</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;">
+            <div class="chart-wrap" style="padding:8px;">
+              <canvas id="dashDonutChart" style="max-height:200px;"></canvas>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:var(--accent2);flex-shrink:0;"></div>
+                <span style="font-size:12px;color:var(--text-muted);">Susceptible</span>
+                <span style="font-family:var(--mono);font-size:12px;color:var(--accent2);margin-left:auto;">62%</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:var(--warn);flex-shrink:0;"></div>
+                <span style="font-size:12px;color:var(--text-muted);">Intermediate</span>
+                <span style="font-family:var(--mono);font-size:12px;color:var(--warn);margin-left:auto;">20%</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:var(--danger);flex-shrink:0;"></div>
+                <span style="font-size:12px;color:var(--text-muted);">Resistant</span>
+                <span style="font-family:var(--mono);font-size:12px;color:var(--danger);margin-left:auto;">18%</span>
+              </div>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+                <div style="font-size:10px;color:var(--text-dim);font-family:var(--mono);">MODEL CONFIDENCE</div>
+                <div style="margin-top:8px;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+                  <div style="width:87%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;"></div>
+                </div>
+                <div style="font-family:var(--mono);font-size:14px;color:var(--accent);margin-top:4px;">87%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model trend -->
+      <div class="card scan-container">
+        <div class="scan-line"></div>
+        <div class="card-title">Model Training Performance Trend</div>
+        <div class="chart-wrap">
+          <canvas id="dashLineChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ CLINICAL PREDICTION ═══════════ -->
+    <div id="page-clinical" class="page">
+      <div>
+        <div class="page-title">🏥 Clinical Prediction</div>
+        <div class="page-sub">Predict antibiotic resistance from patient & bacterial data</div>
+      </div>
+
+      <div class="grid-14">
+        <!-- Inputs -->
+        <div class="card">
+          <div class="card-title">Patient Information</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Bacterial Species</label>
+              <select class="form-control" id="clin-species">
+                <option>Escherichia coli</option>
+                <option>Klebsiella pneumoniae</option>
+                <option>Pseudomonas aeruginosa</option>
+                <option>Enterobacteria spp.</option>
+                <option>Staphylococcus aureus</option>
+                <option>Acinetobacter baumannii</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Age</label>
+              <input type="number" class="form-control" id="clin-age" placeholder="e.g. 45" min="1" max="120">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select class="form-control" id="clin-gender">
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Infection Frequency</label>
+              <select class="form-control" id="clin-inf">
+                <option>Never</option>
+                <option>Rarely</option>
+                <option>Regularly</option>
+                <option>Often</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Diabetes</label>
+              <select class="form-control" id="clin-diabetes">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hypertension</label>
+              <select class="form-control" id="clin-htn">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Hospitalized (last 6 months)</label>
+              <select class="form-control" id="clin-hosp">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Prior Antibiotic Exposure</label>
+              <select class="form-control" id="clin-prev">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Antibiotic of Interest</label>
+            <select class="form-control" id="clin-abx">
+              <option>AMX/AMP</option><option>AMC</option><option>CZ</option>
+              <option>FOX</option><option>CTX/CRO</option><option>IPM</option>
+              <option>GEN</option><option>AN</option><option>Acide nalidixique</option>
+              <option>ofx</option><option>CIP</option><option>C</option>
+              <option>Co-trimoxazole</option><option>Furanes</option><option>colistine</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-full" onclick="runClinicalPrediction()">
+            <span id="clin-btn-icon">🔬</span>
+            <span id="clin-btn-text">Predict Resistance</span>
+          </button>
+        </div>
+
+        <!-- Outputs -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- Result header -->
+          <div class="result-panel" id="clin-result-panel">
+            <div class="result-empty">
+              <span class="icon">⏳</span>
+              <span>Fill patient data and click Predict Resistance</span>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Resistance Probability</div>
+              <div class="chart-wrap">
+                <canvas id="clinProbChart"></canvas>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Top Feature Importance</div>
+              <div id="clinFeatImp" style="padding:8px 0;"></div>
+            </div>
+          </div>
+
+          <!-- Recommendations -->
+          <div class="card" id="clin-recs-card" style="display:none;">
+            <div class="card-title">💊 Top Recommended Antibiotics (Lowest Resistance)</div>
+            <div class="rec-list" id="clin-rec-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ ENVIRONMENTAL PREDICTION ═══════════ -->
+    <div id="page-environmental" class="page">
+      <div>
+        <div class="page-title">🌿 Environmental Prediction</div>
+        <div class="page-sub">Predict resistance from environmental sampling (Nigerian soil & surface data)</div>
+      </div>
+
+      <div class="grid-14">
+        <div class="card">
+          <div class="card-title">Sampling Parameters</div>
+
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <select class="form-control" id="env-city">
+              <option>Ede</option><option selected>Ife</option>
+              <option>Iwo</option><option>Osu</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Surface Type</label>
+            <select class="form-control" id="env-surface">
+              <option value="T">T — Butcher Table</option>
+              <option value="C">C — Concrete Slab</option>
+              <option value="S">S — Surrounding Soil</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sample Source</label>
+            <select class="form-control" id="env-source">
+              <option>Hospital</option>
+              <option>Community</option>
+              <option>Lab</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Antibiotic</label>
+            <select class="form-control" id="env-abx">
+              <option>imipenem</option><option>ceftazidime</option>
+              <option>gentamicin</option><option>augmentin</option>
+              <option>ciprofloxacin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bacterial Species (optional)</label>
+            <select class="form-control" id="env-species">
+              <option>— Any —</option>
+              <option>Escherichia coli</option>
+              <option>Klebsiella pneumoniae</option>
+              <option>Pseudomonas aeruginosa</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary btn-full" onclick="runEnvPrediction()">
+            🌿 Predict Resistance
+          </button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="result-panel" id="env-result-panel">
+            <div class="result-empty"><span class="icon">🌱</span><span>Configure sampling parameters to predict</span></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Class Probability</div>
+              <div class="chart-wrap"><canvas id="envProbChart"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Feature Importance</div>
+              <div id="envFeatImp" style="padding:8px 0;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ GENE & FEATURES ═══════════ -->
+    <div id="page-features" class="page">
+      <div>
+        <div class="page-title">🧬 Resistance Genes & Predictive Features</div>
+        <div class="page-sub">Gene interaction network and feature importance analysis</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Gene Interaction Network</div>
+          <div class="network-svg-wrap">
+            <svg viewBox="0 0 500 320" xmlns="http://www.w3.org/2000/svg" id="gene-svg">
+              <!-- Edges -->
+              <line x1="250" y1="160" x2="120" y2="80" stroke="#1a4d6a" stroke-width="2"/>
+              <line x1="250" y1="160" x2="380" y2="80" stroke="#1a4d6a" stroke-width="2"/>
+              <line x1="250" y1="160" x2="100" y2="240" stroke="#1a3a2a" stroke-width="1.5"/>
+              <line x1="250" y1="160" x2="400" y2="240" stroke="#3a2a1a" stroke-width="1.5"/>
+              <line x1="250" y1="160" x2="250" y2="40" stroke="#2a1a4a" stroke-width="2.5"/>
+              <line x1="120" y1="80" x2="380" y2="80" stroke="#162030" stroke-width="1"/>
+              <!-- Nodes -->
+              <circle cx="250" cy="160" r="28" fill="#0d1520" stroke="#00d4ff" stroke-width="2"/>
+              <text x="250" y="155" text-anchor="middle" fill="#00d4ff" font-size="9" font-family="Space Mono">blaCTX-M</text>
+              <text x="250" y="168" text-anchor="middle" fill="#6a8fa8" font-size="7" font-family="Space Mono">0.80</text>
+
+              <circle cx="120" cy="80" r="22" fill="#0d1520" stroke="#00ff9d" stroke-width="2"/>
+              <text x="120" y="75" text-anchor="middle" fill="#00ff9d" font-size="9" font-family="Space Mono">ampC</text>
+              <text x="120" y="88" text-anchor="middle" fill="#6a8fa8" font-size="7" font-family="Space Mono">0.60</text>
+
+              <circle cx="380" cy="80" r="22" fill="#0d1520" stroke="#00ff9d" stroke-width="2"/>
+              <text x="380" y="75" text-anchor="middle" fill="#00ff9d" font-size="9" font-family="Space Mono">blaKPC</text>
+              <text x="380" y="88" text-anchor="middle" fill="#6a8fa8" font-size="7" font-family="Space Mono">0.55</text>
+
+              <circle cx="100" cy="240" r="22" fill="#0d1520" stroke="#f5a623" stroke-width="2"/>
+              <text x="100" y="235" text-anchor="middle" fill="#f5a623" font-size="9" font-family="Space Mono">CIP</text>
+              <text x="100" y="248" text-anchor="middle" fill="#6a8fa8" font-size="7" font-family="Space Mono">Quinolone</text>
+
+              <circle cx="400" cy="240" r="22" fill="#0d1520" stroke="#f5a623" stroke-width="2"/>
+              <text x="400" y="235" text-anchor="middle" fill="#f5a623" font-size="9" font-family="Space Mono">GEN</text>
+              <text x="400" y="248" text-anchor="middle" fill="#6a8fa8" font-size="7" font-family="Space Mono">Aminogly.</text>
+
+              <circle cx="250" cy="40" r="20" fill="#0d1520" stroke="#ff4545" stroke-width="2"/>
+              <text x="250" y="35" text-anchor="middle" fill="#ff4545" font-size="8" font-family="Space Mono">E.coli</text>
+              <text x="250" y="48" text-anchor="middle" fill="#6a8fa8" font-size="7" font-family="Space Mono">Host</text>
+
+              <!-- Legend -->
+              <circle cx="30" cy="285" r="5" fill="#00d4ff"/>
+              <text x="40" y="289" fill="#6a8fa8" font-size="8" font-family="Space Mono">Gene</text>
+              <circle cx="80" cy="285" r="5" fill="#f5a623"/>
+              <text x="90" y="289" fill="#6a8fa8" font-size="8" font-family="Space Mono">Antibiotic</text>
+              <circle cx="145" cy="285" r="5" fill="#ff4545"/>
+              <text x="155" y="289" fill="#6a8fa8" font-size="8" font-family="Space Mono">Phenotype</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Top Resistance Genes / Features</div>
+          <div style="margin-top:4px;" id="gene-feat-list">
+            <!-- Rendered by JS -->
+          </div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+            <div class="card-title">Gene Family Filter</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <span onclick="filterGenes('all', this)" class="badge badge-sensitive" style="cursor:pointer;">ALL</span>
+              <span onclick="filterGenes('esbl', this)" class="badge badge-intermediate" style="cursor:pointer;">ESBL</span>
+              <span onclick="filterGenes('carba', this)" class="badge badge-resistant" style="cursor:pointer;">CARBAPENEMASE</span>
+              <span onclick="filterGenes('amino', this)" class="badge" style="cursor:pointer;background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid var(--accent);">AMINOGLYCOSIDE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Global Feature Importance — All Models Combined</div>
+        <div class="chart-wrap">
+          <canvas id="globalFeatChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ MODEL PERFORMANCE ═══════════ -->
+    <div id="page-performance" class="page">
+      <div>
+        <div class="page-title">📈 Model Performance</div>
+        <div class="page-sub">Evaluation metrics across clinical and environmental models</div>
+      </div>
+
+      <!-- Metric Cards -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-value">0.87</div>
+          <div class="metric-label">Accuracy</div>
+          <div class="metric-desc">Overall correctness</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--accent2);">0.84</div>
+          <div class="metric-label">Precision</div>
+          <div class="metric-desc">Correct resistant preds</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--warn);">0.81</div>
+          <div class="metric-label">Recall</div>
+          <div class="metric-desc">Resistance detected</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--accent);">0.82</div>
+          <div class="metric-label">F1 Score</div>
+          <div class="metric-desc">Harmonic mean</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--accent2);">0.91</div>
+          <div class="metric-label">ROC AUC</div>
+          <div class="metric-desc">Area under curve</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- F1 by antibiotic table -->
+        <div class="card">
+          <div class="card-title">Clinical Models — F1 Score per Antibiotic</div>
+          <table class="data-table" id="f1-table">
+            <thead>
+              <tr>
+                <th>Antibiotic</th>
+                <th>F1 Score</th>
+                <th style="width:120px;">Performance</th>
+              </tr>
+            </thead>
+            <tbody id="f1-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Environmental F1 -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-title">Environmental Models — F1 Score</div>
+            <div class="chart-wrap">
+              <canvas id="envF1Chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Train vs Test Accuracy</div>
+            <div class="chart-wrap">
+              <canvas id="genChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROC + Confusion -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">ROC Curve (Representative Model)</div>
+          <div class="chart-wrap">
+            <canvas id="rocChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Confusion Matrix</div>
+          <div class="chart-wrap">
+            <canvas id="confChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TREATMENT STRATEGY ═══════════ -->
+    <div id="page-strategy" class="page">
+      <div>
+        <div class="page-title">💊 Treatment Strategy</div>
+        <div class="page-sub">AI-generated antibiotic stewardship recommendations</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Stewardship Principles</div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+            <div class="rec-item">
+              <span class="rec-rank">#1</span>
+              <div>
+                <div class="rec-name" style="font-size:13px;">Reserve Carbapenems</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Use imipenem/meropenem only for confirmed multidrug-resistant organisms. High F1 on environmental strains indicates local carbapenem resistance is emerging.</div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <span class="rec-rank">#2</span>
+              <div>
+                <div class="rec-name" style="font-size:13px;">Gentamicin First-line Aminoglycoside</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">F1=0.711 — model confidence is high. Preferred for Gram-negative UTIs where quinolone resistance is detected.</div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <span class="rec-rank">#3</span>
+              <div>
+                <div class="rec-name" style="font-size:13px;">Avoid Empiric Fluoroquinolones</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">CIP resistance predicted in >40% of E. coli isolates from community settings. Always culture-guide when possible.</div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <span class="rec-rank">#4</span>
+              <div>
+                <div class="rec-name" style="font-size:13px;">Combination Therapy for ESBL Producers</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">blaCTX-M is the strongest predictor of multi-drug resistance. Consider beta-lactam/beta-lactamase inhibitor combinations (AMC).</div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <span class="rec-rank">#5</span>
+              <div>
+                <div class="rec-name" style="font-size:13px;">De-escalate After Culture Results</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">AI prediction guides empiric choice; always de-escalate to narrowest effective agent once susceptibility is confirmed.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-title">Resistance Risk by Patient Factor</div>
+            <div class="chart-wrap">
+              <canvas id="riskChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Antibiotic Efficacy Ranking (Model-Derived)</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;" id="efficacy-rank"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
